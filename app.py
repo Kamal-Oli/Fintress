@@ -11,6 +11,22 @@ def safe_sum(df, col):
     return df[col].sum() if col in df.columns else 0
 
 def calculate_metrics(df):
+    def calculate_metrics(df):
+    current_assets = safe_sum(df, "Current Assets")
+    inventory = safe_sum(df, "Inventory")
+    current_liabilities = safe_sum(df, "Current Liabilities")
+    total_liabilities = safe_sum(df, "Total Liabilities")
+    equity = safe_sum(df, "Equity")
+    total_assets = safe_sum(df, "Total Assets")
+    revenue = safe_sum(df, "Revenue")
+    net_profit = safe_sum(df, "Net Profit")
+
+    current_ratio = ...
+    quick_ratio = ...
+    debt_equity = ...
+    roa = ...
+
+    score = ...
     current_assets = safe_sum(df, "Current Assets")
     inventory = safe_sum(df, "Inventory")
     current_liabilities = safe_sum(df, "Current Liabilities")
