@@ -3,23 +3,27 @@ import pandas as pd
 import os
 
 app = Flask(__name__)
+
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-def calculate_metrics(df):
-    current_assets = df["Current Assets"].sum()
-    inventory = df["Inventory"].sum() if "Inventory" in df.columns else 0
-    current_liabilities = df["Current Liabilities"].sum()
-    total_liabilities = df["Total Liabilities"].sum()
-    equity = df["Equity"].sum()
-    total_assets = df["Total Assets"].sum()
-    revenue = df["Revenue"].sum()
-    net_profit = df["Net Profit"].sum()
+def safe_sum(df, col):
+    return df[col].sum() if col in df.columns else 0
 
-    current_ratio = current_assets / current_liabilities
-    quick_ratio = (current_assets - inventory) / current_liabilities
-    debt_equity = total_liabilities / equity
-    roa = net_profit / total_assets
+def calculate_metrics(df):
+    current_assets = safe_sum(df, "Current Assets")
+    inventory = safe_sum(df, "Inventory")
+    current_liabilities = safe_sum(df, "Current Liabilities")
+    total_liabilities = safe_sum(df, "Total Liabilities")
+    equity = safe_sum(df, "Equity")
+    total_assets = safe_sum(df, "Total Assets")
+    revenue = safe_sum(df, "Revenue")
+    net_profit = safe_sum(df, "Net Profit")
+
+    current_ratio = current_assets / current_liabilities if current_liabilities else 0
+    quick_ratio = (current_assets - inventory) / current_liabilities if current_liabilities else 0
+    debt_equity = total_liabilities / equity if equity else 0
+    roa = net_profit / total_assets if total_assets else 0
 
     score = 0
     if current_ratio < 1:
@@ -49,20 +53,30 @@ def calculate_metrics(df):
 @app.route("/", methods=["GET", "POST"])
 def index():
     metrics = None
+    error = None
 
     if request.method == "POST":
-        file = request.files["file"]
-        path = os.path.join(UPLOAD_FOLDER, file.filename)
-        file.save(path)
+        try:
+            file = request.files.get("file")
+            if not file:
+                raise ValueError("No file uploaded")
 
-        if file.filename.endswith(".csv"):
-            df = pd.read_csv(path)
-        else:
-            df = pd.read_excel(path)
+            path = os.path.join(UPLOAD_FOLDER, file.filename)
+            file.save(path)
 
-        metrics = calculate_metrics(df)
+            if file.filename.endswith(".csv"):
+                df = pd.read_csv(path)
+            elif file.filename.endswith(".xlsx"):
+                df = pd.read_excel(path)
+            else:
+                raise ValueError("Unsupported file format")
 
-    return render_template("index.html", metrics=metrics)
+            metrics = calculate_metrics(df)
+
+        except Exception as e:
+            error = str(e)
+
+    return render_template("index.html", metrics=metrics, error=error)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
