@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fintress – Financial Stress Test</title>
+</head>
+<body>
+    <h2>Upload Financial Data</h2>
+
+    <form method="POST" enctype="multipart/form-data">
+        <input type="file" name="file" required>
+        <button type="submit">Analyze</button>
+    </form>
+
+    {% if metrics %}
+        <h3>Results</h3>
+        <ul>
+            {% for key, value in metrics.items() %}
+                <li><strong>{{ key }}:</strong> {{ value }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+</body>
+</html>
