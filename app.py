@@ -19,6 +19,32 @@ def calculate_metrics(df):
     total_assets = safe_sum(df, "Total Assets")
     revenue = safe_sum(df, "Revenue")
     net_profit = safe_sum(df, "Net Profit")
+    def altman_z_score(df):
+    wc = safe_sum(df, "Current Assets") - safe_sum(df, "Current Liabilities")
+    ta = safe_sum(df, "Total Assets")
+    tl = safe_sum(df, "Total Liabilities")
+    equity = safe_sum(df, "Equity")
+    retained_earnings = safe_sum(df, "Retained Earnings")
+    ebit = safe_sum(df, "EBIT")
+
+    if ta == 0 or tl == 0:
+        return 0, "Insufficient data"
+
+    z = (
+        6.56 * (wc / ta)
+        + 3.26 * (retained_earnings / ta)
+        + 6.72 * (ebit / ta)
+        + 1.05 * (equity / tl)
+    )
+
+    if z < 1.1:
+        status = "Distress Zone"
+    elif z < 2.6:
+        status = "Grey Zone"
+    else:
+        status = "Safe Zone"
+
+    return round(z, 2), status
 
     current_ratio = current_assets / current_liabilities if current_liabilities else 0
     quick_ratio = (current_assets - inventory) / current_liabilities if current_liabilities else 0
